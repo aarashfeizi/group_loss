@@ -288,7 +288,7 @@ def _resnet(
 ) -> ResNet:
     model = ResNet(block, layers, **kwargs)
     if pretrained:
-        state_dict = load_state_dict_from_url(model_urls[arch], progress=progress)
+        state_dict = torch.load('./net/resnet50.pt')
         model.load_state_dict(state_dict)
     return model
 
