@@ -27,7 +27,7 @@ def evaluate(model, dataloader, nb_classes, net_type='bn_inception', dataroot='C
     # calculate embeddings with model, also get labels (non-batch-wise)
     X, T = predict_batchwise(model, dataloader, net_type)
 
-    if dataroot != 'Stanford':
+    if dataroot != 'Stanford' and dataroot != 'hotels':
         # calculate NMI with kmeans clustering
         nmi = evaluation.calc_normalized_mutual_information(T, evaluation.cluster_by_kmeans(X, nb_classes))
         logging.info("NMI: {:.3f}".format(nmi * 100))

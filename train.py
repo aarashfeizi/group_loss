@@ -8,6 +8,7 @@ import warnings
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from tqdm import tqdm
 
 import data_utility
 import gtg
@@ -174,37 +175,39 @@ for e in range(1, args.nb_epochs + 1):
             g['lr'] = args.lr_net / 10.
 
     i = 0
-    for x, Y in dl_tr:
-        Y = Y.to(device)
-        opt.zero_grad()
+    with tqdm(total=len(dl_tr), desc=f'Epoch {e}') as t:
+        for x, Y in dl_tr:
+            Y = Y.to(device)
+            opt.zero_grad()
 
-        probs, fc7 = model(x.to(device))
-        labs, L, U = data_utility.get_labeled_and_unlabeled_points(labels=Y,
-                                                                   num_points_per_class=args.num_labeled_points_class,
-                                                                   num_classes=args.nb_classes)
+            probs, fc7 = model(x.to(device))
+            labs, L, U = data_utility.get_labeled_and_unlabeled_points(labels=Y,
+                                                                       num_points_per_class=args.num_labeled_points_class,
+                                                                       num_classes=args.nb_classes)
 
-        # compute normalized softmax
-        probs_for_gtg = F.softmax(probs / args.temperature)
+            # compute normalized softmax
+            probs_for_gtg = F.softmax(probs / args.temperature)
 
-        # do GTG (iterative process)
-        probs_for_gtg, W = gtg(fc7, fc7.shape[0], labs, L, U, probs_for_gtg)
-        probs_for_gtg = torch.log(probs_for_gtg + 1e-12)
+            # do GTG (iterative process)
+            probs_for_gtg, W = gtg(fc7, fc7.shape[0], labs, L, U, probs_for_gtg)
+            probs_for_gtg = torch.log(probs_for_gtg + 1e-12)
 
-        # compute the losses
-        loss1 = criterion(probs_for_gtg, Y)
-        loss2 = criterion2(probs, Y)
-        loss = args.scaling_loss * loss1 + loss2
-        i += 1
+            # compute the losses
+            loss1 = criterion(probs_for_gtg, Y)
+            loss2 = criterion2(probs, Y)
+            loss = args.scaling_loss * loss1 + loss2
+            i += 1
 
-        # check possible net divergence
-        if torch.isnan(loss):
-            print("We have NaN numbers, closing")
-            print("\n\n\n")
-            sys.exit(0)
+            # check possible net divergence
+            if torch.isnan(loss):
+                print("We have NaN numbers, closing")
+                print("\n\n\n")
+                sys.exit(0)
 
-        # backprop
-        loss.backward()
-        opt.step()
+            # backprop
+            loss.backward()
+            opt.step()
+            t.update()
 
     # compute recall and NMI at the end of each epoch (for Stanford NMI takes forever so skip it)
     with torch.no_grad():
