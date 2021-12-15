@@ -32,7 +32,7 @@ def load_net(dataset, net_type, nb_classes):
         model.classifier = nn.Linear(1920, nb_classes)
         model.load_state_dict(torch.load('net/finetuned_' + dataset + '_' + net_type + '.pth'))
     else:
-        model = timm.create_model(net_type, pretrained=True, num_classes=nb_classes)
+        model = net.resnet50(pretrained=True, num_classes=nb_classes)
 
     return model
 
