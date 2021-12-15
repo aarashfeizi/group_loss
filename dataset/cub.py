@@ -35,5 +35,8 @@ class Birds(torch.utils.data.Dataset):
 
     def __getitem__(self, index):
         im = PIL.Image.open(self.im_paths[index])
+        if len(list(im.split())) == 1:
+            im = im.convert('RGB')
         im = self.transform(im)
+
         return im, self.ys[index]

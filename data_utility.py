@@ -1,27 +1,27 @@
-import dataset
-import torch
 from collections import defaultdict
-from combine_sampler import CombineSampler
+
 import numpy as np
-import pickle
+import torch
+
+import dataset
+from combine_sampler import CombineSampler
 
 
-def create_loaders(dataset_name, data_root, num_classes, is_extracted, num_workers, num_classes_iter, num_elements_class, size_batch, project_dir=''):
-
+def create_loaders(dataset_name, data_root, num_classes, is_extracted, num_workers, num_classes_iter,
+                   num_elements_class, size_batch):
     Dataset = dataset.load(
         name=dataset_name,
         root=data_root,
         transform=dataset.utils.make_transform(),
         labels=list(range(0, num_classes)),
         mode='train',
-        project_dir=project_dir,
         is_extracted=is_extracted)
-
-    Dataset = dataset.Birds(
-        root=data_root,
-        labels=list(range(0, num_classes)),
-        is_extracted=is_extracted,
-        transform=dataset.utils.make_transform())
+    #
+    # Dataset = dataset.Birds(
+    #     root=data_root,
+    #     labels=list(range(0, num_classes)),
+    #     is_extracted=is_extracted,
+    #     transform=dataset.utils.make_transform())
 
     ddict = defaultdict(list)
     for idx, label in enumerate(Dataset.ys):
@@ -47,16 +47,17 @@ def create_loaders(dataset_name, data_root, num_classes, is_extracted, num_worke
         class_end = 2 * num_classes
 
     dl_ev = torch.utils.data.DataLoader(
-        dataset.Birds(
+        dataset.load(
+            name=dataset_name,
             root=data_root,
+            transform=dataset.utils.make_transform(is_train=False),
             labels=list(range(num_classes, class_end)),
-            is_extracted=is_extracted,
-            transform=dataset.utils.make_transform(is_train=False)
-        ),
-            batch_size=50,
-            shuffle=False,
-            num_workers=1,
-            pin_memory=True
+            mode='eval',
+            is_extracted=is_extracted),
+        batch_size=50,
+        shuffle=False,
+        num_workers=1,
+        pin_memory=True
     )
 
     dl_finetune = torch.utils.data.DataLoader(
@@ -89,7 +90,6 @@ def create_loaders(dataset_name, data_root, num_classes, is_extracted, num_worke
 
 
 def create_loaders_finetune(data_root, num_classes, is_extracted, num_workers, size_batch):
-
     if data_root == 'Stanford':
         class_end = 2 * num_classes - 2
     else:
@@ -102,10 +102,10 @@ def create_loaders_finetune(data_root, num_classes, is_extracted, num_workers, s
             is_extracted=is_extracted,
             transform=dataset.utils.make_transform(is_train=False)
         ),
-            batch_size=150,
-            shuffle=False,
-            num_workers=1,
-            pin_memory=True
+        batch_size=150,
+        shuffle=False,
+        num_workers=1,
+        pin_memory=True
     )
 
     dl_finetune = torch.utils.data.DataLoader(
@@ -120,7 +120,6 @@ def create_loaders_finetune(data_root, num_classes, is_extracted, num_workers, s
         num_workers=num_workers,
         pin_memory=True
     )
-
 
     return dl_ev, dl_finetune
 
@@ -149,4 +148,3 @@ def debug_info(gtg, model):
             if param.grad is not None:
                 print(name, torch.mean(param.grad.data))
     print("\n\n\n")
-
