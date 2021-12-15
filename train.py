@@ -175,7 +175,7 @@ for e in range(1, args.nb_epochs + 1):
             g['lr'] = args.lr_net / 10.
 
     i = 0
-    with tqdm(total=len(dl_tr), desc=f'Epoch {e}') as t:
+    with tqdm(total=len(dl_tr), desc=f'Epoch {e}/{args.nb_epochs}') as t:
         for x, Y in dl_tr:
             Y = Y.to(device)
             opt.zero_grad()
