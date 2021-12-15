@@ -85,8 +85,8 @@ parser = argparse.ArgumentParser(description='Training inception V2' +
 dataset_name = 'cub'  # cub, cars, Stanford, or hotels
 hyperparams = Hyperparameters(dataset_name)
 parser.add_argument('--dataset_name', default=dataset_name, type=str, help='The name of the dataset')
-parser.add_argument('--cub-root', default=hyperparams.get_path(), help='Path to dataset folder')
-parser.add_argument('--cub-is-extracted', action='store_true',
+parser.add_argument('--cub_root', default=hyperparams.get_path(), help='Path to dataset folder')
+parser.add_argument('--cub_is_extracted', action='store_true',
                     default=True, help='If `images.tgz` was already extracted, do not extract it again.' +
                                        ' Otherwise use extracted data.')
 parser.add_argument('--nb_classes', default=hyperparams.get_number_classes(), type=int,
@@ -98,8 +98,8 @@ parser.add_argument('--num_elements_class', default=hyperparams.get_number_eleme
                     help='Number of samples per each class')
 parser.add_argument('--num_labeled_points_class', default=hyperparams.get_number_labeled_elements_class(), type=int,
                     help='Number of labeled samples per each class')
-parser.add_argument('--lr-net', default=hyperparams.get_learning_rate(), type=float, help='The learning rate')
-parser.add_argument('--weight-decay', default=hyperparams.get_weight_decay(), type=float,
+parser.add_argument('--lr_net', default=hyperparams.get_learning_rate(), type=float, help='The learning rate')
+parser.add_argument('--weight_decay', default=hyperparams.get_weight_decay(), type=float,
                     help='The l2 regularization strength')
 parser.add_argument('--nb_epochs', default=hyperparams.get_epochs(), type=int, help='Number of training epochs.')
 parser.add_argument('--nb_workers', default=4, type=int, help='Number of workers for dataloader.')

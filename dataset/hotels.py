@@ -53,7 +53,7 @@ class Hotels(BaseDataset):
     def __init__(self, root, mode, transform=None):
         self.mode = mode
         self.root = root
-        with open(os.path.join(self.root, '/v5_splits/train_lbl2id.pkl'), 'rb') as f:
+        with open(os.path.join(self.root, 'v5_splits/train_lbl2id.pkl'), 'rb') as f:
             self.train_lbl2id = pickle.load(f)
 
         if mode == 'train':
