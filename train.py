@@ -1,4 +1,3 @@
-from apex import amp
 
 import logging, imp
 import random
@@ -38,16 +37,18 @@ class Hyperparameters():
             self.dataset_path = '../../datasets/CUB_200_2011'
         elif dataset_name == 'cars':
             self.dataset_path = '../../datasets/CARS'
-        else:
+        elif dataset_name == 'Stanford':
             self.dataset_path = '../../datasets/Stanford'
-        self.num_classes = {'cub': 100, 'cars': 98, 'Stanford': 11318}
-        self.num_classes_iteration = {'cub': 6, 'cars': 5, 'Stanford': 10}
-        self.num_elemens_class = {'cub': 9, 'cars': 7, 'Stanford': 6}
-        self.get_num_labeled_class = {'cub': 2, 'cars': 3, 'Stanford': 2}
+        elif dataset_name == 'hotels':
+            self.dataset_path = '../../datasets/hotels50k/'
+        self.num_classes = {'cub': 100, 'cars': 98, 'Stanford': 11318, 'hotels':2468}
+        self.num_classes_iteration = {'cub': 6, 'cars': 5, 'Stanford': 10, 'hotels': 10}
+        self.num_elemens_class = {'cub': 9, 'cars': 7, 'Stanford': 6, 'hotels': 6}
+        self.get_num_labeled_class = {'cub': 2, 'cars': 3, 'Stanford': 2, 'hotels': 2}
         # self.learning_rate = 0.0002
-        self.learning_rate = {'cub': 0.0001563663718906821, 'cars': 0.0002, 'Stanford': 0.0006077651100709081}
-        self.weight_decay = {'cub': 6.059722614369727e-06, 'cars': 4.863656728256105e-07, 'Stanford': 5.2724883734490575e-12}
-        self.softmax_temperature = {'cub': 24, 'cars': 79, 'Stanford': 54}
+        self.learning_rate = {'cub': 0.0001563663718906821, 'cars': 0.0002, 'Stanford': 0.0006077651100709081, 'hotels': 0.0006077651100709081}
+        self.weight_decay = {'cub': 6.059722614369727e-06, 'cars': 4.863656728256105e-07, 'Stanford': 5.2724883734490575e-12, 'hotels':5.2724883734490575e-12}
+        self.softmax_temperature = {'cub': 24, 'cars': 79, 'Stanford': 54, 'hotels': 54}
 
     def get_path(self):
         return self.dataset_path
@@ -83,7 +84,7 @@ class Hyperparameters():
 parser = argparse.ArgumentParser(description='Training inception V2' +
                                              ' (BNInception) on CUB-200-2011 (cub), CARS 196 (cars) and Stanford Online Products (Stanford) with The Group Loss as described in ' +
                                              '`The Group Loss for Deep Metric Learning.`')
-dataset_name = 'cars'  # cub, cars or Stanford
+dataset_name = 'cars'  # cub, cars, Stanford, or hotels
 parser.add_argument('--dataset_name', default=dataset_name, type=str, help='The name of the dataset')
 hyperparams = Hyperparameters(dataset_name)
 parser.add_argument('--cub-root', default=hyperparams.get_path(), help='Path to dataset folder')
@@ -114,8 +115,7 @@ parser.add_argument('--decrease_learning_rate', default=10., type=float,
                     help='Number to divide the learnign rate with')
 parser.add_argument('--id', default=1, type=int,
                     help='id, in case you run multiple independent nets, for example if you want an ensemble of nets')
-parser.add_argument('--is_apex', default=0, type=int,
-                    help='if 1 use apex to do mixed precision training')
+parser.add_argument('-gpu_ids', '--gpu_ids', default='', help="gpu ids used to train")  # before: default="0,1,2,3"
 
 args = parser.parse_args()
 
@@ -123,7 +123,11 @@ file_name = '256_' + args.dataset_name + str(args.id) + '_' + args.net_type + '_
     args.num_classes_iter) + '_' + str(args.num_elements_class) + '_' + str(args.num_labeled_points_class) + '_' + str(args.scaling_loss)
 
 batch_size = args.num_classes_iter * args.num_elements_class
-device = 'cuda:0'
+
+if args.gpu_ids != '':
+    os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu_ids
+
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # create folders where we save the trained nets and we put the results
 save_folder_nets = 'save_trained_nets'
@@ -145,8 +149,6 @@ criterion = nn.NLLLoss().to(device)
 criterion2 = nn.CrossEntropyLoss().to(device)
 
 # do training in mixed precision
-if args.is_apex:
-    model, opt = amp.initialize(model, opt, opt_level="O1")
 
 # create loaders
 dl_tr, dl_ev, _, _ = data_utility.create_loaders(args.cub_root, args.nb_classes, args.cub_is_extracted,
@@ -199,11 +201,7 @@ for e in range(1, args.nb_epochs + 1):
             sys.exit(0)
 
         # backprop
-        if args.is_apex:
-            with amp.scale_loss(loss, opt) as scaled_loss:
-                scaled_loss.backward()
-        else:
-            loss.backward()
+        loss.backward()
         opt.step()
 
     # compute recall and NMI at the end of each epoch (for Stanford NMI takes forever so skip it)

@@ -6,7 +6,17 @@ import numpy as np
 import pickle
 
 
-def create_loaders(data_root, num_classes, is_extracted, num_workers, num_classes_iter, num_elements_class, size_batch):
+def create_loaders(dataset_name, data_root, num_classes, is_extracted, num_workers, num_classes_iter, num_elements_class, size_batch, project_dir=''):
+
+    Dataset = dataset.load(
+        name=dataset_name,
+        root=data_root,
+        transform=dataset.utils.make_transform(),
+        labels=list(range(0, num_classes)),
+        mode='train',
+        project_dir=project_dir,
+        is_extracted=is_extracted)
+
     Dataset = dataset.Birds(
         root=data_root,
         labels=list(range(0, num_classes)),
