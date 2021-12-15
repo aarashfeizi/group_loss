@@ -29,7 +29,7 @@ class Hyperparameters():
     def __init__(self, dataset_name='cub'):
         self.dataset_name = dataset_name
         if dataset_name == 'cub':
-            self.dataset_path = '../../datasets/CUB/images/'
+            self.dataset_path = '../../datasets/CUB/'
         elif dataset_name == 'cars':
             self.dataset_path = '../../datasets/CARS' # not for hlr
         elif dataset_name == 'Stanford':
