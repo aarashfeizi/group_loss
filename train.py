@@ -103,7 +103,7 @@ parser.add_argument('--weight_decay', default=hyperparams.get_weight_decay(), ty
                     help='The l2 regularization strength')
 parser.add_argument('--nb_epochs', default=hyperparams.get_epochs(), type=int, help='Number of training epochs.')
 parser.add_argument('--nb_workers', default=4, type=int, help='Number of workers for dataloader.')
-parser.add_argument('--net_type', default='bn_inception', type=str,
+parser.add_argument('--net_type', default='resnet50', type=str,
                     choices=['bn_inception', 'densenet121', 'densenet161', 'densenet169', 'densenet201',
                              'resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152'],
                     help='The type of net we want to use')
